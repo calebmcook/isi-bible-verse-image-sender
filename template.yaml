@@ -1,0 +1,81 @@
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  IsiBibleVerseImages:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-isibiblev-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: alias/aws/s3
+  IsiBibleVerseImagesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref IsiBibleVerseImages
+      PolicyDocument:
+        Id: RequireEncryptionInTransit
+        Version: '2012-10-17'
+        Statement:
+          - Principal: '*'
+            Action: '*'
+            Effect: Allow
+            Resource:
+              - !GetAtt IsiBibleVerseImages.Arn
+              - !Sub ${IsiBibleVerseImages.Arn}/*
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+  ISIBibleVerseImageSender:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: ISIBibleVerseImageSender
+      CodeUri: src/Function
+      Handler: handler.handler
+      Runtime: python3.9
+      MemorySize: 3008
+      Timeout: 120
+      Tracing: Active
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AmazonSSMReadOnlyAccess
+        - AmazonS3ReadOnlyAccess
+  ISIBibleVerseImageSenderLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ISIBibleVerseImageSender}
+  Schedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      ScheduleExpression: cron(0 14 * * ? *)
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      Target:
+        Arn: !GetAtt ISIBibleVerseImageSender.Arn
+        RoleArn: !GetAtt ScheduleToISIBibleVerseImageSenderRole.Arn
+  ScheduleToISIBibleVerseImageSenderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: !Sub scheduler.${AWS::URLSuffix}
+          Action: sts:AssumeRole
+          Condition:
+            ArnLike:
+              aws:SourceArn: !Sub
+                - arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/*/${AWS::StackName}-${ResourceId}-*
+                - ResourceId: Schedule
+      Policies:
+        - PolicyName: StartExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt ISIBibleVerseImageSender.Arn
