@@ -17,7 +17,8 @@ def handler(event, context):
     clients_table = dynamodb.Table('isi-bible-verse-clients-db3-dev')
 
     #scan for only subscribers to hope in numbers and pull out their phone numbers
-    subscribers = clients_table.scan(FilterExpression=Attr('current_status').eq('DAILY-IMAGE'))
+    subscribers = clients_table.scan(FilterExpression=Attr('current_status').eq('DAILY-IMAGE')|Attr('current_status').eq('ALL'))
+    
     subscriber_numbers = [k['phone_number'] for k in subscribers['Items']]
 
     #access twilio credentials through environment variables
