@@ -46,7 +46,7 @@ def handler(event, context):
     for phone_num in subscriber_numbers:
         try: 
             message = client.messages.create(
-                        body='"STOP-SERVICES" to unsubscribe.',
+                        body='"STOP-SERVICES" to unsubscribe. Try "DAILY-SMS" or "HOPE-SMS"',
                         #from_='+19287678011',
                         from_='+16022231114',
                         send_as_mms=True,
