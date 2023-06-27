@@ -37,7 +37,7 @@ def handler(event, context):
     #list all verse image objects and choose random object
     s3 = boto3.resource('s3')
     bucket = s3.Bucket('isi-bible-verse-images')
-    my_key = random.choice(list(bucket.objects.all())).key
+    my_key = random.choice([obj.key for obj in list(bucket.objects.all()) if obj.size != 0])
     image_url = f'https://{bucket.name}.s3.amazonaws.com/{my_key}'
 
     #create twilio client and create message
