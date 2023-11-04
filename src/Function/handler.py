@@ -25,12 +25,12 @@ def handler(event, context):
     #get twilio auth token from AWS systems manager parameter store
     ssm = boto3.client('ssm')
     account_sid = ssm.get_parameter(
-        Name='/twilio/garretson_technology_isi_subaccount/twilio_account_sid',
+        Name='/twilio/isiaccount/twilio_account_sid',
         WithDecryption=True
     )['Parameter']['Value']
 
     auth_token = ssm.get_parameter(
-        Name='/twilio/garretson_technology_isi_subaccount/twilio_auth_token',
+        Name='/twilio/isiaccount/twilio_auth_token',
         WithDecryption=True
     )['Parameter']['Value']
     
@@ -47,8 +47,7 @@ def handler(event, context):
         try: 
             message = client.messages.create(
                         body='"STOP-SERVICES" to unsubscribe. Try "DAILY-SMS" or "HOPE-SMS"',
-                        #from_='+19287678011',
-                        from_='+16022231114',
+                        from_='+12313312717',
                         send_as_mms=True,
                         media_url=image_url,
                         to=phone_num
