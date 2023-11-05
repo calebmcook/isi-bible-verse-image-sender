@@ -42,6 +42,10 @@ Resources:
         - AmazonDynamoDBFullAccess
         - AmazonSSMReadOnlyAccess
         - AmazonS3ReadOnlyAccess
+        - Statement:
+            - Effect: Allow
+              Action: kms:Decrypt
+              Resource: arn:aws:kms:us-east-1:054619787751:key/09ab41da-2847-4fc9-9795-58b2f73b66b5
   ISIBibleVerseImageSenderLogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
